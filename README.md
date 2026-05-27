@@ -1,98 +1,226 @@
-# CI Starter
+# gemini-writes-your-tests
 
-Learn GitHub Actions by building a CI pipeline for a Python project.
+`gemini-writes-your-tests` is a Python project that brings AI into a practical CI workflow. It uses GitHub Actions and the Gemini API to run tests, review pull requests, label risk, and generate tests when coverage drops.
 
-> **Part of a 4-project series!** This repo grows with you:
-> 1. **Project 1** (this one): Basic CI workflow
-> 2. **Project 2**: AI code review on every PR
-> 3. **Project 3**: AI test generator
-> 4. **Project 4**: AI stale code detector
+## 🚀 Overview
 
-## What You'll Do
+This project shows how to move beyond basic CI and build smarter automation around code quality. It starts with a simple pytest pipeline, then adds AI-powered pull request reviews, severity-based labeling, and automated test generation for changed Python files.
 
-1. **Write Python code** - Add functions to `app.py`
-2. **Write tests** - Add test cases to `tests/test_app.py`
-3. **Create CI workflow** - Build `.github/workflows/ci.yml`
-4. **Watch it run** - Push and see GitHub Actions in action!
+## ✨ Features
 
-## Getting Started
+- ✅ Run `pytest` automatically on pushes and pull requests
+- 📦 Build and upload Python package artifacts in CI
+- 🤖 Review pull requests with Gemini using code diffs
+- 💬 Post AI review comments directly on pull requests
+- 🏷️ Apply severity labels automatically: critical, warning, or looks-good
+- 🧪 Generate pytest tests for changed Python files with Gemini
+- 📉 Skip test generation when coverage is already above threshold
+- 🔁 Commit generated tests back to the pull request branch
+
+## 🛠️ Tech Stack
+
+| Layer | Tooling |
+|---|---|
+| Language | Python 3.11 |
+| Testing | pytest, pytest-cov |
+| CI/CD | GitHub Actions |
+| AI | Google Gemini API via `google-genai` |
+| Packaging | `build` |
+| Parsing | Python `ast` |
+
+## ⚙️ Setup
+
+### Prerequisites
+
+- Python 3.11 or newer
+- Git
+- GitHub account
+- Gemini API key from Google AI Studio
+
+### Install
 
 ```bash
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/ci-starter.git
-cd ci-starter
+git clone https://github.com/NikhilDesai11/gemini-writes-your-tests.git
+cd gemini-writes-your-tests
 
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+```
 
-# Install dependencies
+Activate the virtual environment:
+
+```bash
+# Windows
+venv\Scripts\activate
+
+# macOS/Linux
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-## Your Missions
+## 🔐 Environment Variables
 
-### Mission 1: Add a Function
+| Variable | Required | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | Yes | Authenticates requests to the Gemini API |
 
-Add a `multiply` function to `app.py`:
-
-```python
-def multiply(a: int, b: int) -> int:
-    """Multiply two numbers."""
-    # Your code here
-```
-
-### Mission 2: Add Tests
-
-Add a `TestMultiply` class to `tests/test_app.py`:
-
-```python
-class TestMultiply:
-    def test_multiply_positive(self):
-        # Your test here
-
-    def test_multiply_by_zero(self):
-        # Your test here
-```
-
-### Mission 3: Create CI Workflow
-
-Create `.github/workflows/ci.yml` that:
-- Triggers on push and pull_request to main
-- Runs on ubuntu-latest
-- Checks out code
-- Sets up Python 3.11
-- Installs dependencies
-- Runs linter (`ruff check .`)
-- Runs tests (`pytest -v`)
-
-### Mission 4: Break It, Fix It
-
-1. Push your code → watch it pass ✅
-2. Break a test intentionally → watch it fail ❌
-3. Fix the test → watch it pass again ✅
-
-### Secret Mission: Build Artifact
-
-Add steps to build and upload a dist/ artifact!
-
-## Local Commands
+For local runs:
 
 ```bash
-pytest -v        # Run tests
-ruff check .     # Run linter
-python -m build  # Build package
+# Windows
+set GEMINI_API_KEY=your_api_key_here
+
+# macOS/Linux
+export GEMINI_API_KEY=your_api_key_here
 ```
 
-## Project Structure
+For GitHub Actions, add `GEMINI_API_KEY` under:
 
+**Repository Settings → Secrets and variables → Actions**
+
+## 🧪 Run Locally
+
+Run tests:
+
+```bash
+pytest -v
 ```
-ci-starter/
-├── .github/workflows/
-│   └── ci.yml            # Project 1: You create this!
-├── scripts/              # Projects 2-4: AI scripts go here
-├── tests/test_app.py     # Add more tests!
-├── app.py                # Add more functions!
+
+Run the AI review script on a diff file:
+
+```bash
+python scripts/ai_review.py scripts/sample_diff.txt
+```
+
+Run the test generator on one or more Python files:
+
+```bash
+python scripts/generate_tests.py app.py
+```
+
+Run the coverage check with an 80% threshold:
+
+```bash
+python scripts/check_coverage.py 80
+```
+
+Build the package:
+
+```bash
+python -m build
+```
+
+## 📜 Scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/ai_review.py` | Sends a pull request diff to Gemini and returns a structured review |
+| `scripts/generate_tests.py` | Extracts function definitions from changed files and generates pytest tests |
+| `scripts/check_coverage.py` | Measures test coverage and decides whether test generation is needed |
+| `scripts/sample_diff.txt` | Sample diff used for local AI review testing |
+
+## 🤖 API / Architecture
+
+### 1. CI pipeline
+
+The base CI workflow runs on pushes and pull requests to `main`.
+
+Flow:
+
+```text
+checkout -> setup Python -> install dependencies -> pytest -> build package -> upload artifact
+```
+
+### 2. AI pull request review
+
+The PR review workflow runs on pull requests to `main`.
+
+Flow:
+
+```text
+pull request opened/updated
+-> get PR diff
+-> run ai_review.py
+-> post Gemini review comment
+-> extract severity
+-> apply GitHub label
+```
+
+### 3. AI test generation
+
+The test generation workflow runs on pull requests when Python files change.
+
+Flow:
+
+```text
+pull request opened/updated
+-> check coverage
+-> if coverage < threshold, find changed Python files
+-> run generate_tests.py
+-> write tests/test_generated.py
+-> commit generated tests back to PR branch
+```
+
+### 🏷️ Severity labels
+
+| Severity | Label |
+|---|---|
+| CRITICAL | `ai-review: critical` |
+| WARNING | `ai-review: warning` |
+| GOOD | `ai-review: looks-good` |
+
+## 📂 Folder Structure
+
+```text
+gemini-writes-your-tests/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── pr-review.yml
+│       └── test-gen.yml
+├── scripts/
+│   ├── ai_review.py
+│   ├── check_coverage.py
+│   ├── generate_tests.py
+│   └── sample_diff.txt
+├── tests/
+│   ├── test_app.py
+│   └── test_generated.py
+├── app.py
+├── pyproject.toml
 ├── requirements.txt
-└── pyproject.toml
+└── README.md
 ```
+
+## 🚢 Deployment
+
+This project is packaged in CI using:
+
+```bash
+python -m build
+```
+
+On successful workflow runs, GitHub Actions uploads the contents of `dist/` as a downloadable artifact named `python-package`.
+
+The artifact includes:
+
+- A `.whl` file for installation
+- A `.tar.gz` source archive
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a branch for your change
+3. Make your updates
+4. Open a pull request
+5. Let the workflows run
+
+If your pull request changes Python code, the repository can automatically review it, label it, and generate tests where needed.
+
+## 📄 License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
